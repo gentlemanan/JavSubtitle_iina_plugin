@@ -1,0 +1,276 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Development Guide | IINA Plugin API</title><meta name="description" content="Documentation for IINA Plugin API"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><link rel="stylesheet" href="../assets/custom.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"><a href="https://iina.io">IINA Home</a><a href="https://github.com/iina/iina">GitHub</a></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">IINA Plugin API</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">IINA Plugin API</a></li>
+<li><a href="dev-guide.html">Development Guide</a></li></ul>
+<h1> Development Guide</h1></div>
+<div class="tsd-panel tsd-typography"><p>This page contains various technical guides for plugin development.</p>
+
+<a href="#infojson-structure" id="infojson-structure" style="color: inherit; text-decoration: none;">
+  <h2>Info.json Structure</h2>
+</a>
+<p><code>Info.json</code> can contain the following fields.</p>
+<p>These fields are required:</p>
+<ul>
+<li><code>name</code>: The name of the plugin.
+It will be displayed in the plugin list in IINA&#39;s preferences.</li>
+<li><code>version</code>: The version of the plugin.
+It should be in the format of <code>major.minor.patch</code>, such as <code>1.0.0</code>.</li>
+<li><code>identifier</code>: The unique identifier of the plugin.
+It should be in the format of reverse domain name, such as <code>com.example.myplugin</code>.</li>
+<li><code>author</code>: The author of the plugin. It contains three fields:<ul>
+<li><code>name</code>: The name of the author.</li>
+<li><code>email</code>: <em>Optional.</em> The email address of the author.</li>
+<li><code>url</code>: <em>Optional.</em> The homepage of the author.</li>
+</ul>
+</li>
+<li><code>entry</code>: The path to the main entry file, relative to the plugin folder.</li>
+</ul>
+<p>The following fields are optional:</p>
+<ul>
+<li><code>description</code>: A short description of the plugin.</li>
+<li><code>globalEntry</code>: The path to the global entry file, relative to the plugin folder.</li>
+<li><code>preferencesPage</code> The path to the preferences page file, relative to the plugin folder.
+This HTML page will be displayed in IINA&#39;s preferences.
+See <a href="/pages/plugin-preferences">Plugin Preferences</a> for more details.</li>
+<li><code>preferenceDefaults</code>: The default values of the preferences.
+See <a href="/pages/plugin-preferences">Plugin Preferences</a> for more details.</li>
+<li><code>helpPage</code>: The path to a help webpage, can be an HTML file in the plugin folder or an external URL.
+This page will be displayed in IINA&#39;s preferences.</li>
+<li><code>subProviders</code>: An array of subtitle providers to register.
+See <a href="/pages/subtitle-providers">Subtitle Providers</a> for more details.</li>
+<li><code>sidebarTab</code>: A dictionary containing the information of the sidebar tab.
+It may have the following fields:<ul>
+<li><code>name</code>: The title of the tab.</li>
+</ul>
+</li>
+<li><code>permissions</code>: An array of permissions required by the plugin.
+See the <a href="#plugin-permissions"><em>Plugin Permissions</em></a> section below for more details.</li>
+<li><code>allowedDomains</code> An array of domains that the plugin can access.
+This will be displayed in IINA&#39;s preferences and when installing the plugin.
+Typically, you can put <code>[&quot;*&quot;]</code> here to allow the plugin to access all domains.</li>
+<li><code>ghRepo</code>: The GitHub repository of the plugin, in the format of <code>username/repo</code>.
+If specified, IINA will check for updates on GitHub automatically.</li>
+<li><code>ghVersion</code>: An integer that should be incremented every time you publish a new version to GitHub.
+When checking for updates, IINA will compare this number with the latest code on GitHub.</li>
+</ul>
+
+<a href="#plugin-permissions" id="plugin-permissions" style="color: inherit; text-decoration: none;">
+  <h2>Plugin Permissions</h2>
+</a>
+<p>Plugins should declare the permissions they need in <code>Info.json</code>.
+When installing a plugin, IINA will display the permissions required by it to the user.
+The permissions are listed below:</p>
+<ul>
+<li><code>show-osd</code>: The plugin can show OSD messages.
+This permission is required if the plugin uses the <code>iina.core.osd()</code> method.</li>
+<li><code>show-alert</code>: The plugin can show native alert dialogs.
+This permission is required if the plugin uses related methods in the <code>iina.utils</code> module.</li>
+<li><code>video-overlay</code>: The plugin can draw on the video overlay.
+This permission is required if the plugin uses the <code>iina.overlay</code> module.</li>
+<li><code>network-request</code>: The plugin can access the network.
+This permission is required if the plugin uses the <code>iina.http</code> module.</li>
+<li><code>file-system</code>: The plugin can access the file system.
+This permission is required if the plugin uses the <code>iina.file</code> module or executes external programs
+using <code>iina.utils.exec()</code>.</li>
+</ul>
+
+<a href="#type-definitions" id="type-definitions" style="color: inherit; text-decoration: none;">
+  <h2>Type Definitions</h2>
+</a>
+<p><em>(Note: If you are using the <code>iina-plugin</code> CLI tool to create a plugin,
+the type definitions will be automatically installed for you.)</em></p>
+<p>IINA provides type definitions for TypeScript and JavaScript users.
+Add the <code>iina-plugin-definition</code> package to your project to get the type definitions.</p>
+<pre><code class="language-sh"><span class="hl-0">npm </span><span class="hl-1">install</span><span class="hl-0"> </span><span class="hl-1">--save-dev</span><span class="hl-0"> </span><span class="hl-1">iina-plugin-definition</span>
+</code></pre>
+<p>Sometimes, you may need to update your <code>tsconfig.json</code> file to
+make sure the type definitions are loaded correctly.
+If you don&#39;t have a <code>tsconfig.json</code> file, create one in the root of your project.
+Here is an example:</p>
+<pre><code><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-1">&quot;compilerOptions&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">    </span><span class="hl-1">&quot;lib&quot;</span><span class="hl-4">:</span><span class="hl-0"> [</span><span class="hl-1">&quot;es6&quot;</span><span class="hl-0">, </span><span class="hl-1">&quot;es7&quot;</span><span class="hl-0">, </span><span class="hl-1">&quot;esnext&quot;</span><span class="hl-0">],</span><br/><span class="hl-0">    </span><span class="hl-1">&quot;sourceMap&quot;</span><span class="hl-4">:</span><span class="hl-0"> </span><span class="hl-3">false</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">&quot;target&quot;</span><span class="hl-4">:</span><span class="hl-0"> </span><span class="hl-1">&quot;es6&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">&quot;module&quot;</span><span class="hl-4">:</span><span class="hl-0"> </span><span class="hl-1">&quot;es6&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">&quot;typeRoots&quot;</span><span class="hl-4">:</span><span class="hl-0"> [</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;./node_modules/@types&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;./node_modules/iina-plugin-definition&quot;</span><br/><span class="hl-0">    ]</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">  </span><span class="hl-1">&quot;compileOnSave&quot;</span><span class="hl-0">: </span><span class="hl-3">false</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>Note that we added the <code>iina-plugin-definition</code> package to the <code>typeRoots</code> field,
+and we didn&#39;t include <code>&quot;DOM&quot;</code> in the <code>lib</code> field, because IINA doesn&#39;t provide a browser environment.</p>
+<p>After doing so, you should be able to see autocomplete suggestions for IINA APIs in your editor.</p>
+
+<a href="#equivalents-of-common-browser-apis" id="equivalents-of-common-browser-apis" style="color: inherit; text-decoration: none;">
+  <h2>Equivalents of Common Browser APIs</h2>
+</a>
+<p>Since the plugin code doesn&#39;t run in a browser, there is no <code>window</code> object,
+which is the global context you may be familiar with if you have experience with web development.
+As a result, some useful global methods are not available, sush ad <code>fetch</code>, <code>prompt</code>, and <code>localStorage</code>.</p>
+<p>For the following important timer methods, IINA provides equivalents, so you can use them directly:</p>
+<ul>
+<li><code>setTimeout()</code> and <code>clearTimeout()</code></li>
+<li><code>setInterval()</code> and <code>clearInterval()</code></li>
+</ul>
+<p>IINA usually provides alternatives for other browser APIs as well, such as:</p>
+<ul>
+<li><code>fetch()</code>: Use the <code>iina.http</code> module instead</li>
+<li><code>prompt()</code>: Use <code>iina.utils.ask()</code> instead</li>
+<li><code>localStorage</code>: Use the <code>iina.file</code> module to access the file system</li>
+<li><code>console</code>: Use the <code>iina.console</code> module instead.</li>
+</ul>
+
+<a href="#javascript-module-system" id="javascript-module-system" style="color: inherit; text-decoration: none;">
+  <h2>JavaScript Module System</h2>
+</a>
+<p>When your entry file gets bigger and more complex, you may want to split it into multiple files.
+Therefore, you will need a way to import code from other files.
+This is usually done by using a module system, such as CommonJS or ES6 modules.
+ES6 modules (the <code>import</code> and <code>export</code> keywords)
+are not fully supported by JavaScriptCore, especially on early macOS versions.
+Therefore, IINA provides a node-flavor JavaScript module system to help you organize your code.</p>
+<p>In your entry file, you can use the <code>require()</code> function to import other files:</p>
+<pre><code class="language-js"><span class="hl-3">const</span><span class="hl-0"> { </span><span class="hl-7">foo</span><span class="hl-0"> } = </span><span class="hl-6">require</span><span class="hl-0">(</span><span class="hl-1">&quot;./foo.js&quot;</span><span class="hl-0">);</span>
+</code></pre>
+<p>While in other files, you can use the <code>module.exports</code> object to export values:</p>
+<pre><code class="language-js"><span class="hl-18">module</span><span class="hl-0">.</span><span class="hl-18">exports</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-4">foo:</span><span class="hl-0"> </span><span class="hl-1">&quot;bar&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">};</span>
+</code></pre>
+<p>However, this module system is very basic and doesn&#39;t support any more features.
+If you need more flexibility, especially ES6 modules, you can use a bundler, as described below.</p>
+
+<a href="#using-bundlers" id="using-bundlers" style="color: inherit; text-decoration: none;">
+  <h2>Using Bundlers</h2>
+</a>
+<p>You may want to use a bundler to bundle your plugin code into a single file.
+Although it requires more work, it can bring you many benefits, such as:</p>
+<ul>
+<li>Using ES6 modules and modern JavaScript features</li>
+<li>Using third-party libraries</li>
+<li>Using the full tech stack of web development to develop ustom user interfaces,
+such as React, Vue, and TypeScript</li>
+</ul>
+<p>IINA recommends using <a href="https://parceljs.org/">Parcel</a> to bundle your plugin code.
+Our plugin templates are already configured to work with Parcel,
+so you may start using it right away.</p>
+<p><em>(Note: If you are using the <code>iina-plugin</code> CLI tool to create a plugin,
+it will automatically install Parcel for you, if you choose to use it.)</em></p>
+
+<a href="#common-workflow" id="common-workflow" style="color: inherit; text-decoration: none;">
+  <h4>Common Workflow</h4>
+</a>
+<p>In parcel, you can add targets to your <code>package.json</code> file.</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-15">&quot;targets&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">    </span><span class="hl-15">&quot;entry&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">      </span><span class="hl-15">&quot;distDir&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;./dist/&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-15">&quot;source&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;src/index.ts&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-15">&quot;isLibrary&quot;</span><span class="hl-0">: </span><span class="hl-3">false</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>In the above example, all contents in <code>src/index.ts</code> (and all files imported by it)
+will be bundled into <code>dist/index.js</code>.
+You can therefore use <code>dist/index.js</code> as the entry file of your plugin.</p>
+<p>You can also add more targets for custom user interfaces.
+For example, you may want to use React to build a custom UI for your plugin.
+In this case, you can add a new target to your <code>package.json</code> file:</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-15">&quot;targets&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">    </span><span class="hl-15">&quot;ui&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">      </span><span class="hl-15">&quot;distDir&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;./dist/ui/&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-15">&quot;source&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;src/ui/index.html&quot;</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>Where in <code>src/ui/index.html</code>, you can import JavaScript files containing your React code.
+Then you can load <code>dist/ui/index.html</code> to display your custom UI.</p>
+
+<a href="#debugging" id="debugging" style="color: inherit; text-decoration: none;">
+  <h2>Debugging</h2>
+</a>
+<p>Debugging is a critical part of plugin development.
+IINA provides a few tools to help you debug your plugin.</p>
+
+<a href="#reloading" id="reloading" style="color: inherit; text-decoration: none;">
+  <h4>Reloading</h4>
+</a>
+<p>When developing a plugin, you may want to reload it without installing it again.
+To do so, you can symlink a plugin folder to <code>~/Library/Application Support/IINA/Plugins/</code>.
+<em>The destination must have a <code>.iinaplugin-dev</code> suffix.</em>
+For example:</p>
+<pre><code class="language-sh"><span class="hl-0">ln </span><span class="hl-1">-s</span><span class="hl-0"> </span><span class="hl-1">/path/to/myplugin</span><span class="hl-0"> </span><span class="hl-1">~/Library/Application</span><span class="hl-17">\ </span><span class="hl-1">Support/com.colliderli.iina/plugins/myplugin.iinaplugin-dev</span>
+</code></pre>
+<p><em>(Note: If you are using the <code>iina-plugin</code> CLI tool to create a plugin,
+you can use <code>iina-plugin link &lt;dir&gt;</code> to create the symlink.)</em></p>
+<p>Then you can modify your code (or build your code using a bundler),
+then restart IINA to reload the plugin.</p>
+<p>For webviews, you may be able to reload the webview by selecting <code>Reload</code> in the context menu
+without restarting IINA.</p>
+
+<a href="#log-viewer" id="log-viewer" style="color: inherit; text-decoration: none;">
+  <h4>Log Viewer</h4>
+</a>
+<p>Starting from IINA 1.3.2, you can use Window &gt; Log Viewer to view the logs
+from all IINA log subsystems.
+Upon launch, IINA loads all plugins in the plugin folder, so you may see
+a line like <code>Loading JS plugin from /path/to/plugin</code> in the log viewer.
+Any errors occurred during the loading process will also be displayed here.</p>
+<p>Once your plugin is loaded, you should be able to select the log subsystems for your plugin.
+The subsystem&#39;s name would be <code>global - &lt;plugin name&gt;</code> for the global instance and
+<code>player&lt;id&gt; - &lt;plugin name&gt;</code> for the player instances.
+Any logs printed using the <code>iina.console</code> module will be displayed in the log viewer.</p>
+
+<a href="#js-dev-tool" id="js-dev-tool" style="color: inherit; text-decoration: none;">
+  <h4>JS Dev Tool</h4>
+</a>
+<p>Starting from IINA 1.4.0, you can use Plugin &gt; Developer Tool to run a JavaScript console
+in the context of any plugin.
+This console is similar to the JavaScript console in web browsers.
+In this console, you can access all IINA APIs and the global variables in your plugin.
+You can also inspect the return values of IINA APIs and test your code in this console.</p>
+
+<a href="#safari-web-inspector" id="safari-web-inspector" style="color: inherit; text-decoration: none;">
+  <h4>Safari Web Inspector</h4>
+</a>
+<p>If you need more advanced debugging features, you can use the Safari Web Inspector.
+To do so, you need to enable the Develop menu in Safari Preferences &gt; Advanced.
+Then after launching IINA,
+you can select Develop &gt; (your computer name) and select the
+JavaScript context you want to debug.
+This will open a new window with the Web Inspector.
+You will able to add breakpoints, inspect variables, and use the console in this window.</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">IINA <wbr/>Plugin API</a>
+<ul>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="getting-started.html">Getting <wbr/>Started</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="creating-plugins.html">Creating <wbr/>Plugins</a></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="dev-guide.html">Development <wbr/>Guide</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="global-entry.html">Global <wbr/>Entry <wbr/>Point</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="webviews.html">Web <wbr/>Views</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="subtitle-providers.html">Subtitle <wbr/>Providers</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="plugin-preferences.html">Plugin <wbr/>Preferences</a></li>
+<li class="tsd-kind-namespace"><a href="../modules/IINA.html">IINA</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/IINA.API.html">API</a></li></ul></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="tsd-kind-function"><a href="../functions/setInterval.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-64-path"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)" id="icon-64-text"></path></svg>set<wbr/>Interval</a></li>
+<li class="tsd-kind-function"><a href="../functions/setTimeout.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>set<wbr/>Timeout</a></li>
+<li class="tsd-kind-function"><a href="../functions/clearInterval.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>clear<wbr/>Interval</a></li>
+<li class="tsd-kind-function"><a href="../functions/clearTimeout.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>clear<wbr/>Timeout</a></li>
+<li class="tsd-kind-variable"><a href="../variables/iina-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-32-path"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)" id="icon-32-text"></path></svg>iina</a></li>
+<li class="tsd-kind-function"><a href="../functions/require.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>require</a></li>
+<li class="tsd-kind-variable"><a href="../variables/module.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-32-path"></use><use href="#icon-32-text"></use></svg>module</a></li></ul></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="../assets/main.js"></script></body></html>

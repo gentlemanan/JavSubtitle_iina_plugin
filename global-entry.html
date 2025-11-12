@@ -1,0 +1,110 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Global Entry Point | IINA Plugin API</title><meta name="description" content="Documentation for IINA Plugin API"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><link rel="stylesheet" href="../assets/custom.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"><a href="https://iina.io">IINA Home</a><a href="https://github.com/iina/iina">GitHub</a></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">IINA Plugin API</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">IINA Plugin API</a></li>
+<li><a href="global-entry.html">Global Entry Point</a></li></ul>
+<h1> Global Entry Point</h1></div>
+<div class="tsd-panel tsd-typography"><p>Each IINA player core is isolated from other ones, with its own window, mpv instance, and plugin instances. This means that a normal plugin cannot directly communicate with other player cores.
+However, sometimes it is useful for a plugin to control multiple player windows, for example, to synchronize the playback of multiple videos. In this case, the plugin can use the Global entry point and utilize the <code>global</code> module.</p>
+
+<a href="#the-global-entry-point" id="the-global-entry-point" style="color: inherit; text-decoration: none;">
+  <h2>The global entry point</h2>
+</a>
+<p>Similar to the main entry, a plugin can have a global entry point.
+You can specify a global entry in the <code>Info.json</code> file:</p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-15">&quot;global&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;global.js&quot;</span><br/><span class="hl-0">}</span>
+</code></pre>
+<p>This file will be loaded when IINA starts, before any player core is initialized.</p>
+<p>Internally, IINA creates a &quot;global plugin instance&quot; for the plugin, and loads the global entry script in this instance. The global plugin instance is isolated from the player core instances (which load the main entry script). Since the global plugin instance is not associated with any player core, it cannot use some API modules like <code>core</code> and <code>mpv</code>. However, it can use the <code>global</code> module to control and communicate with the main entry script in other player cores.</p>
+<p><img src="/media/plugin-structure.png" alt="Plugin Architecture"></p>
+<p>Note that the global entry script has its own menu and is able to create a standalone window.
+Therefore, users can access your menu items and user interface even when no video is playing.
+See the documentation of the respective modules for more details.</p>
+
+<a href="#creating-player-cores" id="creating-player-cores" style="color: inherit; text-decoration: none;">
+  <h2>Creating player cores</h2>
+</a>
+<p>The global entry script can create new player cores using the <code>global</code> module:</p>
+<pre><code class="language-js"><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-7">player</span><span class="hl-0"> = </span><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">createPlayerInstance</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-4">url:</span><span class="hl-0"> </span><span class="hl-1">&quot;/path/to/video.mp4&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-4">disableWindowAnimation:</span><span class="hl-0"> </span><span class="hl-3">true</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-4">disableUI:</span><span class="hl-0"> </span><span class="hl-3">true</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-4">enablePlugins:</span><span class="hl-0"> </span><span class="hl-3">false</span><span class="hl-0">,</span><br/><span class="hl-0">});</span>
+</code></pre>
+<p>Here, <code>disableWindowAnimation</code> will disable the window resizing animation, and <code>disableUI</code> will hide the titlebar and on-screen control (OSC). These are useful to create programmatically controlled player windows for, e.g., presentations and video walls.</p>
+
+<a href="#communication-with-the-player-cores" id="communication-with-the-player-cores" style="color: inherit; text-decoration: none;">
+  <h2>Communication with the player cores</h2>
+</a>
+<p>The global entry script can communicate with the main entry scripts in the player cores using
+a similar message passing mechanism as the one used in <a href="/pages/webviews">webviews</a>.
+The global entry script can send messages to the main entry scripts using <code>global.postMessage()</code>:</p>
+<pre><code class="language-js"><span class="hl-2">// send to all players</span><br/><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">postMessage</span><span class="hl-0">(</span><span class="hl-3">null</span><span class="hl-0">, </span><span class="hl-1">&quot;message-name&quot;</span><span class="hl-0">, </span><span class="hl-4">data</span><span class="hl-0">);</span><br/><br/><span class="hl-2">// send to a managed player</span><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-7">player</span><span class="hl-0"> = </span><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">createPlayerInstance</span><span class="hl-0">({ ... });</span><br/><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">postMessage</span><span class="hl-0">(</span><span class="hl-4">player</span><span class="hl-0">, </span><span class="hl-1">&quot;message-name&quot;</span><span class="hl-0">, </span><span class="hl-4">data</span><span class="hl-0">);</span>
+</code></pre>
+<p><code>global.postMessage()</code> takes three parameters: the target player, the message name, and the message data.
+The target player can be <code>null</code> to send the message to all players.
+Otherwise, it can be either a number or a string to send the message to a specific player:</p>
+<ul>
+<li>if it&#39;s a number, it should be the one returned by <code>createPlayerInstance()</code>,</li>
+<li>if it&#39;s a string, it should be the player&#39;s ID.</li>
+</ul>
+<p>If a player (player&#39;s main entry script) sent a message to the global entry script,
+the global entry script can receive it together with the player&#39;s ID using <code>global.onMessage()</code>:</p>
+<pre><code class="language-js"><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">onMessage</span><span class="hl-0">(</span><span class="hl-1">&quot;message-name&quot;</span><span class="hl-0"> (</span><span class="hl-4">data</span><span class="hl-0">, </span><span class="hl-4">playerID</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-2">// do something</span><br/><span class="hl-0">  </span><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">postMessage</span><span class="hl-0">(</span><span class="hl-4">playerID</span><span class="hl-0">, </span><span class="hl-1">&quot;reply-message&quot;</span><span class="hl-0">, </span><span class="hl-4">replyData</span><span class="hl-0">);</span><br/><span class="hl-0">});</span>
+</code></pre>
+<p>Therefore, it provides a convenient way for the global entry script to reply to the player.</p>
+<p>On the player side, the main entry script can send messages to the global entry script
+using <code>global.postMessage()</code> and receive messages using <code>global.onMessage()</code>:</p>
+<pre><code class="language-js"><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">postMessage</span><span class="hl-0">(</span><span class="hl-1">&quot;message-name&quot;</span><span class="hl-0">, </span><span class="hl-4">data</span><span class="hl-0">);</span><br/><br/><span class="hl-4">global</span><span class="hl-0">.</span><span class="hl-6">onMessage</span><span class="hl-0">(</span><span class="hl-1">&quot;message-name&quot;</span><span class="hl-0">, (</span><span class="hl-4">data</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">  </span><span class="hl-2">// do something</span><br/><span class="hl-0">});</span>
+</code></pre>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">IINA <wbr/>Plugin API</a>
+<ul>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="getting-started.html">Getting <wbr/>Started</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="creating-plugins.html">Creating <wbr/>Plugins</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="dev-guide.html">Development <wbr/>Guide</a></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="global-entry.html">Global <wbr/>Entry <wbr/>Point</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="webviews.html">Web <wbr/>Views</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="subtitle-providers.html">Subtitle <wbr/>Providers</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="plugin-preferences.html">Plugin <wbr/>Preferences</a></li>
+<li class="tsd-kind-namespace"><a href="../modules/IINA.html">IINA</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/IINA.API.html">API</a></li></ul></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="tsd-kind-function"><a href="../functions/setInterval.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-64-path"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)" id="icon-64-text"></path></svg>set<wbr/>Interval</a></li>
+<li class="tsd-kind-function"><a href="../functions/setTimeout.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>set<wbr/>Timeout</a></li>
+<li class="tsd-kind-function"><a href="../functions/clearInterval.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>clear<wbr/>Interval</a></li>
+<li class="tsd-kind-function"><a href="../functions/clearTimeout.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>clear<wbr/>Timeout</a></li>
+<li class="tsd-kind-variable"><a href="../variables/iina-1.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-32-path"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)" id="icon-32-text"></path></svg>iina</a></li>
+<li class="tsd-kind-function"><a href="../functions/require.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>require</a></li>
+<li class="tsd-kind-variable"><a href="../variables/module.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-32-path"></use><use href="#icon-32-text"></use></svg>module</a></li></ul></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="../assets/main.js"></script></body></html>

@@ -1,0 +1,24 @@
+{
+  "identifier": "com.zhgdalu.subtitlecat",
+  "name": "SubtitleCat Chinese",
+  "description": "Searches subtitlecat.com for Simplified or Traditional Chinese subtitles.",
+  "version": "0.0.1",
+  "author": {
+    "name": "Zheng Dalu",
+    "url": "https://github.com/zhengdalu"
+  },
+  "entry": "main.js",
+  "minIINAVersion": "1.4.0",
+  "permissions": ["network-request","show-osd"],
+  "allowedDomains": [
+    "subtitlecat.com",
+    "www.subtitlecat.com",
+    "*.subtitlecat.com"
+  ],
+  "subtitleProviders": [
+    {
+      "id": "subtitlecat-zh",
+      "name": "SubtitleCat Chinese"
+    }
+  ]
+}
