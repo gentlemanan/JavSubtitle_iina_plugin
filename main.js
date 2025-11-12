@@ -44,7 +44,6 @@ const DEFAULT_HEADERS = {
 };
 const KEYWORD_PATTERN = /([A-Za-z]+-\d+)/i;
 const SEARCH_RESULT_LIMIT = 8;
-let autoDownloadInProgress = false;
 function ensureHeaders(headers = {}) {
   return { ...DEFAULT_HEADERS, ...headers };
 }
@@ -68,37 +67,6 @@ async function fetchHtml(url, { headers } = {}) {
   } catch (error) {
     log('fetchHtml failed', { url, message: error && error.message ? error.message : error });
     throw error;
-  }
-}
-
-async function autoDownloadSubtitle() {
-  if (autoDownloadInProgress) {
-    return;
-  }
-  autoDownloadInProgress = true;
-  try {
-    const context = await gatherSearchItems(true);
-    if (!context) {
-      showOsd('SubtitleCat: unable to guess keyword automatically');
-      return;
-    }
-    if (!context.items.length) {
-      showOsd('SubtitleCat: no online subtitles found automatically');
-      return;
-    }
-    const selected = context.items[0];
-    showOsd(`SubtitleCat: downloading ${selected.title || context.keyword}`);
-    const paths = await downloadItem({ data: selected });
-    if (!paths.length) {
-      throw new Error('Download returned no files');
-    }
-    core.subtitle.loadTrack(paths[0]);
-    showOsd('SubtitleCat: subtitle loaded automatically');
-  } catch (error) {
-    log('Auto subtitle download failed', error);
-    showOsd('SubtitleCat: automatic download failed');
-  } finally {
-    autoDownloadInProgress = false;
   }
 }
 
