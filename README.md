@@ -9,6 +9,7 @@ A first-party IINA subtitle provider that scrapes [subtitlecat.com](https://www.
 - Parses search and detail pages to keep only entries that actually expose Simplified (`zh-CN`) or Traditional (`zh-TW`) downloads.
 - Prioritises Simplified downloads and falls back to Traditional when necessary.
 - Drops the downloaded subtitle into IINA’s sandbox (`@tmp`) so it can be saved beside the video afterwards.
+- Provides a plugin preference to either return every match for manual selection or automatically pick the first search result.
 
 ## Requirements
 

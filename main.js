@@ -3,7 +3,7 @@
 /* global iina */
 
 const iinaApi = globalThis.iina || {};
-const { core, http, subtitle, utils, console: iinaConsole } = iinaApi;
+const { core, http, subtitle, utils, preferences, console: iinaConsole } = iinaApi;
 
 if (!core || !http || !subtitle || !utils) {
   throw new Error('[SubtitleCat] Required IINA APIs are unavailable.');
@@ -36,6 +36,19 @@ function showOsd(message) {
   log(message);
 }
 
+function getPreferenceValue(key, fallback) {
+  if (!preferences || typeof preferences.get !== 'function') {
+    return fallback;
+  }
+  try {
+    const value = preferences.get(key);
+    return typeof value === 'undefined' ? fallback : value;
+  } catch (error) {
+    log('getPreferenceValue failed', { key, error });
+    return fallback;
+  }
+}
+
 const PROVIDER_ID = 'subtitlecat-zh';
 const BASE_URL = 'https://www.subtitlecat.com';
 const SEARCH_ENDPOINT = `${BASE_URL}/index.php`;
@@ -44,6 +57,7 @@ const DEFAULT_HEADERS = {
 };
 const KEYWORD_PATTERN = /([A-Za-z]+-\d+)/i;
 const SEARCH_RESULT_LIMIT = 8;
+const AUTO_SELECT_PREF_KEY = 'autoSelectFirstResult';
 function ensureHeaders(headers = {}) {
   return { ...DEFAULT_HEADERS, ...headers };
 }
@@ -416,6 +430,15 @@ async function searchProvider(autoOnly = false) {
     throw new Error(`SubtitleCat: no Chinese results for "${keyword}".`);
   }
   log(`Returning ${items.length} results for ${keyword}`);
+  const autoSelectFirst = Boolean(getPreferenceValue(AUTO_SELECT_PREF_KEY, false));
+  if (autoSelectFirst) {
+    const [first] = items;
+    if (first) {
+      log('Auto-selecting first result due to preference', { keyword, title: first.title });
+      showOsd(`SubtitleCat: using ${first.title || keyword}`);
+      return [subtitle.item(first)];
+    }
+  }
   return items.map((data) => subtitle.item(data));
 }
 

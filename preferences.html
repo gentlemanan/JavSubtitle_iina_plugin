@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SubtitleCat Preferences</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: transparent;
+      }
+      main {
+        max-width: 520px;
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+      }
+      .hint {
+        margin: 8px 0 0 26px;
+        color: rgba(0, 0, 0, 0.7);
+      }
+      @media (prefers-color-scheme: dark) {
+        .hint {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <label>
+        <input type="checkbox" id="auto-select-checkbox" />
+        Automatically pick the first search result
+      </label>
+      <p class="hint">
+        When disabled, all SubtitleCat matches are returned so you can choose which subtitle to download.
+      </p>
+    </main>
+    <script>
+      (function () {
+        const checkbox = document.getElementById('auto-select-checkbox');
+        if (!checkbox) {
+          return;
+        }
+        const iinaApi = window.iina || {};
+        const prefs = iinaApi.preferences;
+
+        function readPreference() {
+          if (!prefs || typeof prefs.get !== 'function') {
+            return false;
+          }
+          try {
+            return Boolean(prefs.get('autoSelectFirstResult'));
+          } catch (error) {
+            console.error('[SubtitleCat] Failed to read preference', error);
+            return false;
+          }
+        }
+
+        function writePreference(value) {
+          if (!prefs || typeof prefs.set !== 'function') {
+            return;
+          }
+          try {
+            prefs.set('autoSelectFirstResult', Boolean(value));
+            if (typeof prefs.sync === 'function') {
+              prefs.sync();
+            }
+          } catch (error) {
+            console.error('[SubtitleCat] Failed to persist preference', error);
+          }
+        }
+
+        checkbox.checked = readPreference();
+        checkbox.addEventListener('change', () => writePreference(checkbox.checked));
+      })();
+    </script>
+  </body>
+</html>
