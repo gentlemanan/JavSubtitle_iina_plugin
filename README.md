@@ -1,19 +1,19 @@
-# SubtitleCat Chinese Provider
+# SubtitleCat Provider
 
-An IINA subtitle provider that scrapes [subtitlecat.com](https://www.subtitlecat.com) for Traditional or Simplified Chinese subtitles and hands them directly to IINA's subtitle workflow.
+An IINA subtitle provider that searches [subtitlecat.com](https://www.subtitlecat.com) for subtitles and presents all available language options directly in IINA's subtitle picker.
 
 ## What it does
 
-- Derives番号-style keywords (e.g. `JERA-007`) from the currently loaded video filename and searches SubtitleCat automatically.
+- Derives番号-style keywords (e.g. `ABF-153`) from the currently loaded video filename and searches SubtitleCat automatically.
 - Prompts for a manual keyword when auto-detection fails.
-- Parses search and detail pages to keep only entries that expose a Chinese (`zh-TW` or `zh-CN`) download link.
-- Respects your preferred Chinese variant (Traditional or Simplified), falling back to the other when unavailable.
-- Drops the downloaded subtitle into IINA's sandbox (`@tmp`) so it can be saved beside the video afterwards.
+- Fetches every subtitle result and expands it into individual per-language entries.
+- Sorts results so your preferred language appears first, followed by all other languages alphabetically.
+- Downloads the selected subtitle to `@tmp/<keyword>.<lang>.srt`.
 
 ## Requirements
 
 - IINA 1.4.0 or newer.
-- Network permission (`network-request`) and OSD permission (`show-osd`) are declared in `Info.json` and must remain enabled in IINA's plugin preferences.
+- Network (`network-request`) and OSD (`show-osd`) permissions declared in `Info.json` must remain enabled in IINA's plugin preferences.
 
 ## Preferences
 
@@ -21,7 +21,7 @@ Open *IINA → Preferences → Plugins → SubtitleCat Chinese → Preferences* 
 
 | Setting | Default | Description |
 |---|---|---|
-| Preferred Language | Traditional Chinese (zh-TW) | Which Chinese variant to download when both are available. The other is used as a fallback. |
+| Preferred Language | Traditional Chinese (zh-TW) | Results matching this language are sorted to the top of the list. |
 
 ## Installing for development
 
@@ -36,9 +36,9 @@ Open *IINA → Preferences → Plugins → SubtitleCat Chinese → Preferences* 
 
 ## Usage notes
 
-- The plugin logs to IINA's plugin console with the `[SubtitleCat]` prefix. Keep the console open while developing or debugging.
-- SubtitleCat may rate-limit bursts of requests; wait a few seconds between searches if you hit HTTP errors.
-- Downloads are saved to `@tmp/<video>.<lang>.srt`. When IINA prompts to save the subtitle, choose "Save As…" to copy it next to the media file.
+- The plugin logs to IINA's plugin console with the `[SubtitleCat]` prefix. Open it while developing or debugging.
+- SubtitleCat may rate-limit rapid searches; wait a few seconds if you hit HTTP errors.
+- After IINA prompts to save the downloaded subtitle, choose "Save As…" to place it beside the media file.
 
 ## Packaging for distribution
 

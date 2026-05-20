@@ -164,11 +164,6 @@ class SubtitleCat {
     return input.trim();
   }
 
-  sanitizeFileName(name) {
-    const safe = name || 'subtitle';
-    return safe.replace(/[^A-Za-z0-9._-]+/g, '_');
-  }
-
   // --- Video context ---
 
   guessKeyword() {
@@ -184,17 +179,6 @@ class SubtitleCat {
     const keyword = match ? match[1].toUpperCase() : null;
     this.log('guessKeyword:', { baseName, keyword });
     return keyword;
-  }
-
-  getVideoBaseName() {
-    const status = core.status || {};
-    const url = status.url || '';
-    if (!url) {
-      return null;
-    }
-    const decodedUrl = url.startsWith('file://') ? decodeURIComponent(url) : url;
-    const base = this.stripExtension(this.basenameFromPath(decodedUrl));
-    return base || null;
   }
 
   // --- HTTP ---
@@ -229,7 +213,7 @@ class SubtitleCat {
     const seen = new Set();
     const results = [];
     for (const row of rows) {
-      const anchorMatch = row.match(/<a[^>]*href=\"([^\"]+)\"[^>]*>([\s\S]*?)<\/a>/i);
+      const anchorMatch = row.match(/<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
       if (!anchorMatch) {
         continue;
       }
@@ -250,16 +234,9 @@ class SubtitleCat {
       }
       seen.add(absoluteUrl);
 
-      const cells = row.match(/<td[\s\S]*?<\/td>/gi) || [];
-      let language = '';
-      if (cells.length > 1) {
-        language = this.cleanText(cells[1]);
-      }
-
       results.push({
         title: derivedTitle,
         url: absoluteUrl,
-        language: language || 'Unknown',
       });
 
       if (results.length >= SubtitleCat.SEARCH_RESULT_LIMIT * 2) {
@@ -278,58 +255,27 @@ class SubtitleCat {
     const info = {
       url,
       pageTitle: this.extractTitle(html, 'SubtitleCat Result'),
-      simplified: false,
-      traditional: false,
       downloadLinks: {},
     };
 
-    const linkRegex = /<a([^>]*)>([\s\S]*?)<\/a>/gi;
+    const linkRegex = /<a([^>]+)>/gi;
     let match;
     while ((match = linkRegex.exec(html)) !== null) {
       const attrs = match[1] || '';
-      const inner = match[2] || '';
-      const classesMatch = attrs.match(/class=\"([^\"]+)\"/i);
-      const classes = classesMatch ? classesMatch[1].toLowerCase() : '';
-      if (!classes.includes('green-link')) {
-        continue;
-      }
-      const hrefMatch = attrs.match(/href=\"([^\"]+)\"/i);
-      if (!hrefMatch) {
-        continue;
-      }
-      const href = this.normalizeUrl(hrefMatch[1]);
-      const label = this.cleanText(inner).toLowerCase();
-      const combined = `${label} ${attrs.toLowerCase()}`;
-
-      if (!combined.includes('download')) {
-        continue;
-      }
-      if (combined.includes('zh-tw') || label.includes('繁') || label.includes('traditional')) {
-        info.downloadLinks['zh-TW'] = href;
-        info.traditional = true;
-      }
-      if (combined.includes('zh-cn') || label.includes('简') || label.includes('simplified')) {
-        info.downloadLinks['zh-CN'] = href;
-        info.simplified = true;
-      }
+      if (!attrs.includes('green-link')) continue;
+      const idMatch = attrs.match(/id="download_([^"]+)"/i);
+      if (!idMatch) continue;
+      const langCode = idMatch[1];
+      const hrefMatch = attrs.match(/href="([^"]+)"/i);
+      if (!hrefMatch) continue;
+      info.downloadLinks[langCode] = this.normalizeUrl(hrefMatch[1]);
     }
 
     return info;
   }
 
-  pickDownloadLink(detail) {
-    if (!detail || !detail.downloadLinks) {
-      return null;
-    }
-    const preferred = String(this.getPreferenceValue(SubtitleCat.PREFERRED_LANGUAGE_PREF_KEY, SubtitleCat.PREFERRED_LANGUAGE_DEFAULT));
-    const fallback = preferred === 'zh-TW' ? 'zh-CN' : 'zh-TW';
-    if (detail.downloadLinks[preferred]) {
-      return { language: preferred, url: detail.downloadLinks[preferred] };
-    }
-    if (detail.downloadLinks[fallback]) {
-      return { language: fallback, url: detail.downloadLinks[fallback] };
-    }
-    return null;
+  getPreferred() {
+    return String(this.getPreferenceValue(SubtitleCat.PREFERRED_LANGUAGE_PREF_KEY, SubtitleCat.PREFERRED_LANGUAGE_DEFAULT));
   }
 
   // --- Search pipeline ---
@@ -358,7 +304,7 @@ class SubtitleCat {
       throw new Error(`SubtitleCat detail request failed (${response.statusCode})`);
     }
     const parsed = this.parseDetailPage(response.text || '', url);
-    this.log('Parsed detail page', { url, simplified: parsed.simplified, traditional: parsed.traditional });
+    this.log('Parsed detail page', { url, links: Object.keys(parsed.downloadLinks) });
     return parsed;
   }
 
@@ -368,36 +314,37 @@ class SubtitleCat {
       return [];
     }
 
-    const items = [];
+    const preferred = this.getPreferred();
+    const tuples = [];
     for (const result of results.slice(0, SubtitleCat.SEARCH_RESULT_LIMIT)) {
       try {
         const detail = await this.fetchDetail(result.url);
-        const downloadInfo = this.pickDownloadLink(detail);
-        if (!downloadInfo) {
-          this.log('Skipping result without zh download', result.url);
-          continue;
+        for (const [langCode, url] of Object.entries(detail.downloadLinks)) {
+          tuples.push({
+            title: result.title || detail.pageTitle,
+            keyword,
+            langCode,
+            url,
+          });
         }
-        items.push({
-          title: result.title || detail.pageTitle,
-          keyword,
-          pageUrl: result.url,
-          language: result.language,
-          chosenLanguage: downloadInfo.language,
-          downloadUrl: downloadInfo.url,
-          simplifiedAvailable: detail.simplified,
-          traditionalAvailable: detail.traditional,
-          pageTitle: detail.pageTitle,
-        });
       } catch (error) {
         this.log('Failed to inspect result', result.url, error);
       }
     }
-    this.log('searchWithKeyword summary', {
-      keyword,
-      totalResults: results.length,
-      returned: items.length,
+
+    tuples.sort((a, b) => {
+      const aPref = a.langCode === preferred ? 0 : 1;
+      const bPref = b.langCode === preferred ? 0 : 1;
+      if (aPref !== bPref) return aPref - bPref;
+      if (a.title < b.title) return -1;
+      if (a.title > b.title) return 1;
+      if (a.langCode < b.langCode) return -1;
+      if (a.langCode > b.langCode) return 1;
+      return 0;
     });
-    return items;
+
+    this.log('searchWithKeyword summary', { keyword, returned: tuples.length });
+    return tuples;
   }
 
   async gatherSearchItems(autoOnly = false) {
@@ -407,7 +354,7 @@ class SubtitleCat {
       this.showOsd(`SubtitleCat: searching ${guessed}`);
       const autoItems = await this.searchWithKeyword(guessed);
       if (!autoItems.length) {
-        this.log(`No Chinese subtitles for ${guessed}`);
+        this.log(`No subtitles found for ${guessed}`);
       }
       return { keyword: guessed, items: autoItems };
     }
@@ -436,7 +383,7 @@ class SubtitleCat {
     const { keyword, items } = searchContext;
     if (!items.length) {
       this.showOsd(`SubtitleCat: no subtitles for "${keyword}"`);
-      throw new Error(`SubtitleCat: no Chinese results for "${keyword}".`);
+      throw new Error(`SubtitleCat: no subtitles found for "${keyword}".`);
     }
     this.log(`Returning ${items.length} results for ${keyword}`);
     return items.map((data) => subtitle.item(data));
@@ -444,25 +391,22 @@ class SubtitleCat {
 
   describe(item) {
     const data = item.data || {};
-    const lang = data.chosenLanguage === 'zh-CN' ? '简体 zh-CN' : '繁體 zh-TW';
-    const status = data.language ? `Source: ${data.language}` : 'SubtitleCat';
     return {
-      name: data.title || data.pageTitle || 'SubtitleCat Result',
-      left: lang,
-      right: status,
+      name: data.title || 'SubtitleCat Result',
+      left: data.langCode || '',
+      right: '',
     };
   }
 
   async download(item) {
     const data = item.data || {};
-    if (!data.downloadUrl) {
+    if (!data.url) {
       throw new Error('SubtitleCat: missing download URL.');
     }
-    const baseName = this.getVideoBaseName() || data.keyword || 'subtitle';
-    const suffix = data.chosenLanguage || 'zh';
-    const fileName = `${this.sanitizeFileName(baseName)}.${suffix}.srt`;
+    const keyword = (data.keyword || 'subtitle').replace(/[^A-Za-z0-9._-]+/g, '_');
+    const fileName = `${keyword}.${data.langCode}.srt`;
     const targetPath = `@tmp/${fileName}`;
-    await http.download(data.downloadUrl, targetPath, { headers: SubtitleCat.DEFAULT_HEADERS });
+    await http.download(data.url, targetPath, { headers: SubtitleCat.DEFAULT_HEADERS });
     this.log(`Downloaded ${fileName}`);
     return [targetPath];
   }
