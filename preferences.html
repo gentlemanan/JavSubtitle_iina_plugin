@@ -18,19 +18,43 @@
       main {
         max-width: 520px;
       }
-      label {
+      .preference-group {
+        margin-bottom: 24px;
+      }
+      .preference-group h3 {
+        margin: 0 0 12px 0;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: 0.6;
+      }
+      .row {
         display: flex;
         align-items: center;
         gap: 8px;
-        font-weight: 600;
+        margin-bottom: 8px;
       }
-      input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+      .row label {
+        font-weight: 600;
+        margin-bottom: 0;
+      }
+      select {
+        font-size: 13px;
+        padding: 3px 6px;
+        border-radius: 5px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        background: transparent;
+        color: inherit;
+      }
+      @media (prefers-color-scheme: dark) {
+        select {
+          border-color: rgba(255, 255, 255, 0.2);
+        }
       }
       .hint {
-        margin: 8px 0 0 26px;
+        margin: 4px 0 0 0;
         color: rgba(0, 0, 0, 0.7);
+        font-size: 13px;
       }
       @media (prefers-color-scheme: dark) {
         .hint {
@@ -41,41 +65,45 @@
   </head>
   <body>
     <main>
-      <label>
-        <input type="checkbox" id="auto-select-checkbox" />
-        Automatically pick the first search result
-      </label>
-      <p class="hint">
-        When disabled, all SubtitleCat matches are returned so you can choose which subtitle to download.
-      </p>
+      <div class="preference-group">
+        <h3>Preferred Language</h3>
+        <div class="row">
+          <label for="language-select">Chinese variant:</label>
+          <select id="language-select">
+            <option value="zh-TW">Traditional Chinese (繁體 zh-TW)</option>
+            <option value="zh-CN">Simplified Chinese (简体 zh-CN)</option>
+          </select>
+        </div>
+        <p class="hint">
+          When both variants are available, the preferred one is downloaded. The other is used as a fallback.
+        </p>
+      </div>
     </main>
     <script>
       (function () {
-        const checkbox = document.getElementById('auto-select-checkbox');
-        if (!checkbox) {
-          return;
-        }
+        const languageSelect = document.getElementById('language-select');
         const iinaApi = window.iina || {};
         const prefs = iinaApi.preferences;
 
-        function readPreference() {
+        function readPreference(key, defaultValue) {
           if (!prefs || typeof prefs.get !== 'function') {
-            return false;
+            return defaultValue;
           }
           try {
-            return Boolean(prefs.get('autoSelectFirstResult'));
+            const value = prefs.get(key);
+            return typeof value === 'undefined' ? defaultValue : value;
           } catch (error) {
             console.error('[SubtitleCat] Failed to read preference', error);
-            return false;
+            return defaultValue;
           }
         }
 
-        function writePreference(value) {
+        function writePreference(key, value) {
           if (!prefs || typeof prefs.set !== 'function') {
             return;
           }
           try {
-            prefs.set('autoSelectFirstResult', Boolean(value));
+            prefs.set(key, value);
             if (typeof prefs.sync === 'function') {
               prefs.sync();
             }
@@ -84,8 +112,14 @@
           }
         }
 
-        checkbox.checked = readPreference();
-        checkbox.addEventListener('change', () => writePreference(checkbox.checked));
+        if (languageSelect) {
+          const saved = readPreference('preferredLanguage', 'zh-TW');
+          const validOptions = Array.from(languageSelect.options).map(o => o.value);
+          languageSelect.value = validOptions.includes(saved) ? saved : 'zh-TW';
+          languageSelect.addEventListener('change', () =>
+            writePreference('preferredLanguage', languageSelect.value)
+          );
+        }
       })();
     </script>
   </body>

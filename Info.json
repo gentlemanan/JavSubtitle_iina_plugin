@@ -10,7 +10,7 @@
   "entry": "main.js",
   "preferencesPage": "preferences.html",
   "preferenceDefaults": {
-    "autoSelectFirstResult": false
+    "preferredLanguage": "zh-TW"
   },
   "minIINAVersion": "1.4.0",
   "permissions": ["network-request","show-osd"],
